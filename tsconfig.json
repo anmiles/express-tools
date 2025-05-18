@@ -1,0 +1,7 @@
+{
+	"extends" : "./node_modules/@anmiles/tsconfig/tsconfig.json",
+
+	"include" : [
+		"src",
+	],
+}
