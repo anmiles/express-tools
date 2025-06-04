@@ -3,4 +3,3 @@
 export * from './lib/httpError';
 export * from './lib/request';
 export * from './lib/server';
-export * from './lib/validate';
