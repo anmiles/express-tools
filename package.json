@@ -29,14 +29,14 @@
 		"test:report:coverage": "nyc report"
 	},
 	"dependencies": {
-		"@anmiles/logger": "^8.0.1",
-		"@anmiles/prototypes": "^11.2.2",
+		"@anmiles/logger": "^8.0.2",
+		"@anmiles/prototypes": "^11.2.3",
 		"express": "^5.1.0",
 		"out-url": "^1.2.2",
 		"server-destroy": "^1.0.1"
 	},
 	"devDependencies": {
-		"@anmiles/eslint-config": "^9.0.3",
+		"@anmiles/eslint-config": "^9.0.4",
 		"@anmiles/tsconfig": "^4.0.0",
 		"@eslint/compat": "^1.3.1",
 		"@eslint/css": "^0.10.0",
