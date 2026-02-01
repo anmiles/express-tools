@@ -7,7 +7,7 @@ import { open } from 'out-url';
 
 import { startServer, stopServer } from '../server';
 
-jest.mock('server-destroy', () => jest.fn().mockImplementation(() => destroyEnabled = true));
+jest.mock('server-destroy', () => jest.fn().mockImplementation(() => { destroyEnabled = true; }));
 jest.mock('out-url');
 jest.mock('@anmiles/logger');
 
@@ -31,7 +31,7 @@ const server = {
 	destroy,
 } as unknown as Server;
 
-const listen = jest.fn<Server, [number, (error?: Error)=> void], boolean>()
+const listen = jest.fn<Server, [number, (error?: Error) => void], boolean>()
 	.mockImplementation((_port, callback) => {
 		setTimeout(() => callback(listenError));
 		return server;

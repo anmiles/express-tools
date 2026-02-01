@@ -6,7 +6,7 @@ import { HttpError } from './httpError';
 type StatusCode = number;
 
 export function createRequestHandler<TResponseData extends unknown>(
-	getResult: (request: Request)=> {
+	getResult: (request: Request) => {
 		result: TResponseData;
 		status?: StatusCode;
 	},
@@ -32,7 +32,7 @@ export function createRequestHandler<TResponseData extends unknown>(
 }
 
 export function createAsyncRequestHandler<TResponseData extends unknown>(
-	getResultAsync: (request: Request)=> Promise<{
+	getResultAsync: (request: Request) => Promise<{
 		result: TResponseData;
 		status?: StatusCode;
 	}>,
