@@ -23,6 +23,7 @@ destroy.mockImplementation((callback) => {
 	}
 });
 
+const host = 'test-host';
 const port = 1234;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -32,7 +33,7 @@ const server = {
 } as unknown as Server;
 
 const listen = jest.fn<Server, [number, (error?: Error) => void], boolean>()
-	.mockImplementation((_port, callback) => {
+	.mockImplementation((_port, _host, callback) => {
 		setTimeout(() => callback(listenError));
 		return server;
 	});
@@ -49,34 +50,80 @@ beforeEach(() => {
 
 describe('src/lib/server', () => {
 	describe('startServer', () => {
-		it('should start server and output its address as a localhost with port if address is of type AddressInfo', async () => {
-			address.mockReturnValue({ port, address: 'random', family: 'random' });
+		describe('logger', () => {
+			it('should log server address if it is of type string', async () => {
+				address.mockReturnValue('http://example.com/server');
 
-			await startServer(app, { port });
+				await startServer(app, { port });
 
-			expect(logger.log).toHaveBeenCalledWith('Starting server...');
-			expect(logger.log).toHaveBeenCalledWith('Server started at http://localhost:1234');
+				expect(logger.log).toHaveBeenCalledWith('Starting server...');
+				expect(logger.log).toHaveBeenCalledWith('Server started at http://example.com/server');
+			});
+
+			it('should log server address with port if address is of type AddressInfo', async () => {
+				address.mockReturnValue({ port, address: 'some-address', family: 'random' });
+
+				await startServer(app, { port });
+
+				expect(logger.log).toHaveBeenCalledWith('Starting server...');
+				expect(logger.log).toHaveBeenCalledWith('Server started at http://some-address:1234');
+			});
+
+			it('should log server address as localhost with port if address is of type AddressInfo and host is 0.0.0.0', async () => {
+				address.mockReturnValue({ port, address: '0.0.0.0', family: 'random' });
+
+				await startServer(app, { port });
+
+				expect(logger.log).toHaveBeenCalledWith('Starting server...');
+				expect(logger.log).toHaveBeenCalledWith('Server started at http://localhost:1234');
+			});
+
+			it('should log server address as localhost with port if address is of type AddressInfo and host is ::', async () => {
+				address.mockReturnValue({ port, address: '::', family: 'random' });
+
+				await startServer(app, { port });
+
+				expect(logger.log).toHaveBeenCalledWith('Starting server...');
+				expect(logger.log).toHaveBeenCalledWith('Server started at http://localhost:1234');
+			});
 		});
 
-		it('should start server and output its address if it is of type string', async () => {
-			address.mockReturnValue('http://example.com/server');
+		describe('listen', () => {
+			it('should be called with a default host and port', async () => {
+				await startServer(app);
 
-			await startServer(app, { port });
+				expect(listen).toHaveBeenCalledWith(0, '0.0.0.0', expect.anything());
+			});
 
-			expect(logger.log).toHaveBeenCalledWith('Starting server...');
-			expect(logger.log).toHaveBeenCalledWith('Server started at http://example.com/server');
+			it('should be called with a default host and a port specified', async () => {
+				await startServer(app, { port });
+
+				expect(listen).toHaveBeenCalledWith(port, '0.0.0.0', expect.anything());
+			});
+
+			it('should be called with a host and port specified', async () => {
+				await startServer(app, { host, port });
+
+				expect(listen).toHaveBeenCalledWith(port, 'test-host', expect.anything());
+			});
 		});
 
-		it('should call listen with a port specified', async () => {
-			await startServer(app, { port });
+		describe('open', () => {
+			it('should open url if expected', async () => {
+				address.mockReturnValue('http://example.com/server');
 
-			expect(listen).toHaveBeenCalledWith(port, expect.anything());
-		});
+				await startServer(app, { port, open: true });
 
-		it('should call listen with a port 0 if not specified', async () => {
-			await startServer(app);
+				expect(open).toHaveBeenCalledWith('http://example.com/server');
+			});
 
-			expect(listen).toHaveBeenCalledWith(0, expect.anything());
+			it('should not open url if not expected', async () => {
+				address.mockReturnValue('http://example.com/server');
+
+				await startServer(app, { port });
+
+				expect(open).not.toHaveBeenCalled();
+			});
 		});
 
 		it('should enable destroy', async () => {
@@ -85,22 +132,6 @@ describe('src/lib/server', () => {
 			await startServer(app, { port });
 
 			expect(destroyEnabled).toBe(true);
-		});
-
-		it('should open url if expected', async () => {
-			address.mockReturnValue('http://example.com/server');
-
-			await startServer(app, { port, open: true });
-
-			expect(open).toHaveBeenCalledWith('http://example.com/server');
-		});
-
-		it('should not open url if not expected', async () => {
-			address.mockReturnValue('http://example.com/server');
-
-			await startServer(app, { port });
-
-			expect(open).not.toHaveBeenCalled();
 		});
 
 		it('should throw if server address is null', async () => {

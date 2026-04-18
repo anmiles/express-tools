@@ -1,4 +1,5 @@
 import type { Server } from 'http';
+import type { AddressInfo } from 'net';
 
 import logger from '@anmiles/logger';
 import type { Express } from 'express';
@@ -7,12 +8,30 @@ import enableDestroy from 'server-destroy';
 
 let server: Server | undefined;
 
-export async function startServer(app: Express, options?: { port?: number; open?: boolean }): Promise<void> {
+function getHost(address: string): string {
+	switch (address) {
+		case '::':
+			return 'localhost';
+		case '0.0.0.0':
+			return 'localhost';
+		default:
+			return address;
+	}
+}
+
+function getUrl(address: string | AddressInfo): string {
+	return typeof address === 'string'
+		? address
+		: `http://${getHost(address.address)}:${address.port}`;
+}
+
+export async function startServer(app: Express, options?: { host?: string; port?: number; open?: boolean }): Promise<void> {
 	return new Promise((resolve, reject) => {
 		logger.log('Starting server...');
+		const host = options?.host ?? '0.0.0.0';
 
 		// eslint-disable-next-line promise/prefer-await-to-callbacks
-		server = app.listen(options?.port ?? 0, (error) => {
+		server = app.listen(options?.port ?? 0, host, (error) => {
 			if (error) {
 				return void reject(error);
 			}
@@ -24,9 +43,7 @@ export async function startServer(app: Express, options?: { port?: number; open?
 				return void reject('Cannot start server');
 			}
 
-			const url = typeof address === 'string'
-				? address
-				: `http://localhost:${address.port}`;
+			const url = getUrl(address);
 
 			logger.log(`Server started at ${url}`);
 
