@@ -25,7 +25,7 @@ function getUrl(address: string | AddressInfo): string {
 		: `http://${getHost(address.address)}:${address.port}`;
 }
 
-export async function startServer(app: Express, options?: { host?: string; port?: number; open?: boolean }): Promise<void> {
+export async function startServer(app: Express, options?: { host?: string; port?: number; open?: boolean }): Promise<Server> {
 	return new Promise((resolve, reject) => {
 		logger.log('Starting server...');
 		const host = options?.host ?? '0.0.0.0';
@@ -51,7 +51,7 @@ export async function startServer(app: Express, options?: { host?: string; port?
 				void open(url);
 			}
 
-			return void resolve();
+			return void resolve(server!);
 		});
 	});
 }

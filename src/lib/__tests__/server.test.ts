@@ -86,6 +86,14 @@ describe('src/lib/server', () => {
 				expect(logger.log).toHaveBeenCalledWith('Starting server...');
 				expect(logger.log).toHaveBeenCalledWith('Server started at http://localhost:1234');
 			});
+
+			it('should return server', async () => {
+				address.mockReturnValue({ port, address: 'some-address', family: 'random' });
+
+				const result = await startServer(app, { port });
+
+				expect(result).toBe(server);
+			});
 		});
 
 		describe('listen', () => {
